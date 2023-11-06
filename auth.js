@@ -1,8 +1,8 @@
 const msalConfig = {
     auth: {
-        clientId: "d3a8cec7-9a81-4676-bf1f-4b67735d63dc", // Znajdziesz go w Azure portal po zarejestrowaniu aplikacji
-        authority: "https://login.microsoftonline.com/67ea5955-9b5c-4693-a8f9-960f2a3b49bb", // Znajdziesz go w Azure portal
-        redirectUri: "http://localhost:3000/dashboard.html", // Powinno odpowiadać URI przekierowania skonfigurowanemu w Azure
+        clientId: "d3a8cec7-9a81-4676-bf1f-4b67735d63dc",
+        authority: "https://login.microsoftonline.com/67ea5955-9b5c-4693-a8f9-960f2a3b49bb",
+        redirectUri: "http://localhost:3000/dashboard.html",
     }
 };
 

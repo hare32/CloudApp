@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<script src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.js" integrity="sha384-5h9DNFvoR5iX8A0Zr9KZx3z1k9b6C3bPqjZfXeG6ws7AG0OQz0bOTCRh1+/8hjy3" crossorigin="anonymous"></script>
 <head>
     <meta charset="UTF-8">
     <title>Cloud App Login</title>
-    <script src="auth.js"></script> <!-- Dodaj ścieżkę do Twojego pliku JS -->
 </head>
 <body>
 <h1>Welcome to Cloud App</h1>
 <button onclick="signIn()">Login with Microsoft</button>
 <button onclick="signOut()">Logout</button>
+
+<script src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.js" crossorigin="anonymous"></script>
+<script src="auth.js"></script>
 </body>
 </html>
