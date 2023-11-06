@@ -1,0 +1,15 @@
+{
+  "name": "CloudApp",
+  "version": "1.0.0",
+  "description": "Opis Twojej aplikacji",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
