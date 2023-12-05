@@ -6,21 +6,26 @@
 </head>
 <body>
 <h1>Upload File</h1>
-<input type="file" id="fileInput" required>
+<input type="file" id="fileInput" multiple required>
 <button id="uploadButton">Upload</button>
 <div id="status"></div>
 
 <script>
   window.onload = function() {
     document.getElementById('uploadButton').addEventListener('click', function() {
-      const fileInput = document.getElementById("fileInput");
-      const file = fileInput.files[0];
-      if (!file) {
-        console.error("No file selected.");
-        document.getElementById("status").innerText = "No file selected.";
+      const files = document.getElementById("fileInput").files;
+      if (files.length === 0) {
+        console.error("No files selected.");
+        document.getElementById("status").innerText = "No files selected.";
         return;
       }
 
+      Array.from(files).forEach(file => {
+        uploadFile(file);
+      });
+    });
+
+    function uploadFile(file) {
       const storageAccountName = "spcabmktz";
       const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2023-12-09T23:14:39Z&st=2023-12-05T15:14:39Z&spr=https,http&sig=zSrevYSBOTFwzZX1YkMpQKfKz3RgkUNPvmmJ6XPUu4M%3D";
       const containerName = "aplikacja";
@@ -47,7 +52,7 @@
                 console.error("Error uploading file:", error.message);
                 document.getElementById("status").innerText = `Error uploading file: ${error.message}`;
               });
-    });
+    }
   }
 </script>
 </body>
