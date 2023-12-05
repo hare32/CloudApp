@@ -13,15 +13,22 @@ function signIn() {
         scopes: ["user.read"],
         prompt: "select_account"
     });
-    // Nie ma potrzeby używania .then() po loginRedirect
 }
 
 function handleResponse(loginResponse) {
     if (loginResponse !== null) {
-        // Zalogowany użytkownik, przekierowanie do dashboard.html
-        window.location.href = 'dashboard.html';
+        const username = loginResponse.account.username;
+        // Użytkownik jest zalogowany, możemy teraz stworzyć kontener dla użytkownika
+        createContainerForUser(username).then(containerUrl => {
+            console.log('Container URL:', containerUrl);
+            // Przekieruj użytkownika do dashboard.html z tym kontenerem URL
+            window.location.href = `dashboard.html?containerUrl=${encodeURIComponent(containerUrl)}`;
+        }).catch(error => {
+            console.error('Error during container creation:', error);
+        });
     } else {
         // Użytkownik nie jest zalogowany, możesz wyświetlić interfejs logowania
+        // Możliwe, że będziesz musiał obsłużyć to inaczej, na przykład pokazując komunikat
     }
 }
 
@@ -39,4 +46,20 @@ if (window.location.href.indexOf("dashboard.html") === -1) {
     myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
         console.error(error);
     });
+}
+
+async function createContainerForUser(username) {
+    const response = await fetch('/create-container', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username })
+    });
+    const data = await response.json();
+    if (response.ok) {
+        return data.containerUrl;
+    } else {
+        throw new Error(data.message);
+    }
 }
