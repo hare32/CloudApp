@@ -22,11 +22,11 @@
       }
 
       const storageAccountName = "spcabmktz";
-      const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2023-12-05T21:25:36Z&st=2023-12-05T13:25:36Z&spr=https,http&sig=svuthW%2BHCYVmHZNOuIqET70ubWxRDhG2OreyEGGtiWY%3D"; // Replace with your SAS token
+      const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2023-12-09T23:14:39Z&st=2023-12-05T15:14:39Z&spr=https,http&sig=zSrevYSBOTFwzZX1YkMpQKfKz3RgkUNPvmmJ6XPUu4M%3D";
       const containerName = "aplikacja";
       const blobName = file.name;
 
-      const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}?${sasToken}`;
+      const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}${sasToken}`;
       fetch(url, {
         method: 'PUT',
         headers: {
