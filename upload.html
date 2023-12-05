@@ -7,42 +7,47 @@
 <body>
 <h1>Upload File</h1>
 <input type="file" id="fileInput" required>
-<button onclick="uploadFile()">Upload</button>
+<button id="uploadButton">Upload</button>
+<div id="status"></div>
 
 <script>
-  import {BlobServiceClient} from "@azure/storage-blob";
+  window.onload = function() {
+    document.getElementById('uploadButton').addEventListener('click', function() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      if (!file) {
+        console.error("No file selected.");
+        document.getElementById("status").innerText = "No file selected.";
+        return;
+      }
 
-  const storageAccountName = "spcabmktz";
-  const storageAccountKey = "F1yxe7nId/HSeDOYW5o6L6Z+aB+kxyTxO2Vl6ZP77ffkUhtVWExTlWi8IDEL+Ih++PNSYcrAF/rl+AStpkWFzA==";
-  const containerName = "aplikacja";
-  const blobServiceClient = BlobServiceClient.fromConnectionString(`DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccountKey};EndpointSuffix=core.windows.net`);
+      const storageAccountName = "spcabmktz";
+      const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2023-12-05T21:25:36Z&st=2023-12-05T13:25:36Z&spr=https,http&sig=svuthW%2BHCYVmHZNOuIqET70ubWxRDhG2OreyEGGtiWY%3D"; // Replace with your SAS token
+      const containerName = "aplikacja";
+      const blobName = file.name;
 
-  async function uploadToBlobStorage(file) {
-    const containerClient = blobServiceClient.getContainerClient(containerName);
-    const fileName = file.name;
-    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-
-    try {
-      // Otwórz plik do przesłania
-      const data = await file.arrayBuffer();
-
-      // Prześlij plik do Azure Storage Blob
-      const uploadBlobResponse = await blockBlobClient.upload(data, data.byteLength);
-      console.log(`File uploaded successfully. Request Id: ${uploadBlobResponse.requestId}`);
-    } catch (error) {
-      console.error("Error uploading file:", error.message);
-    }
-  }
-
-  function uploadFile() {
-    const fileInput = document.getElementById("fileInput");
-    const selectedFile = fileInput.files[0];
-
-    if (selectedFile) {
-      uploadToBlobStorage(selectedFile);
-    } else {
-      console.error("No file selected.");
-    }
+      const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}?${sasToken}`;
+      fetch(url, {
+        method: 'PUT',
+        headers: {
+          'x-ms-blob-type': 'BlockBlob',
+        },
+        body: file
+      })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`Azure upload failed with status: ${response.status}`);
+                }
+                return response.text();
+              })
+              .then(result => {
+                document.getElementById("status").innerText = "File uploaded successfully.";
+              })
+              .catch(error => {
+                console.error("Error uploading file:", error.message);
+                document.getElementById("status").innerText = `Error uploading file: ${error.message}`;
+              });
+    });
   }
 </script>
 </body>

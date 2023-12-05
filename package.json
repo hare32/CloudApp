@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@azure/msal-node": "^2.4.0",
-    "@azure/storage-blob": "^12.7.0",
+    "@azure/storage-blob": "^12.17.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "node": "^21.2.0",
     "punycode": "^2.3.1"
   }
 }
