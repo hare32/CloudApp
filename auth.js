@@ -17,7 +17,11 @@ function signIn() {
 
 function handleResponse(loginResponse) {
     if (loginResponse !== null) {
-        const username = loginResponse.account.username;
+        const accountInfo = loginResponse.account;
+        console.log(accountInfo); // Sprawdź, co zawiera accountInfo
+
+        const username = accountInfo.username || accountInfo.name; // Spróbuj odczytać username lub name
+        console.log(username);
         // Użytkownik jest zalogowany, możemy teraz stworzyć kontener dla użytkownika
         if (window.location.href.indexOf("upload.html") !== -1) {
             document.getElementById('username').value = username;
