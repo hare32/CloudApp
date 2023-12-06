@@ -14,14 +14,11 @@ function signIn() {
         prompt: "select_account"
     });
 }
+const username = myMSALObj.getAccount().username;
 
 function handleResponse(loginResponse) {
     if (loginResponse !== null) {
-        const accountInfo = loginResponse.account;
-        console.log(accountInfo); // Sprawdź, co zawiera accountInfo
-
-        const username = accountInfo.username || accountInfo.name; // Spróbuj odczytać username lub name
-        console.log(username);
+        localStorage.setItem('username',username);
         // Użytkownik jest zalogowany, możemy teraz stworzyć kontener dla użytkownika
         if (window.location.href.indexOf("upload.html") !== -1) {
             document.getElementById('username').value = username;
