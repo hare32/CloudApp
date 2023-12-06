@@ -19,6 +19,9 @@ function handleResponse(loginResponse) {
     if (loginResponse !== null) {
         const username = loginResponse.account.username;
         // Użytkownik jest zalogowany, możemy teraz stworzyć kontener dla użytkownika
+        if (window.location.href.indexOf("upload.html") !== -1) {
+            document.getElementById('username').value = username;
+        }
         createContainerForUser(username).then(containerUrl => {
             console.log('Container URL:', containerUrl);
             // Przekieruj użytkownika do dashboard.html z tym kontenerem URL
