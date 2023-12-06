@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>List of Files</title>
     <script>
+        
         async function fetchFiles() {
             try {
                 const response = await fetch('/user-files?username=' + encodeURIComponent(username));
@@ -26,7 +27,7 @@
 
         // Pobierz nazwę użytkownika
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
+        const username = localStorage.getItem('username');
 
         // Pobierz pliki przy ładowaniu strony
         window.onload = fetchFiles;

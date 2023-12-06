@@ -11,6 +11,7 @@
 <div id="status"></div>
 <input type="hidden" id="username" value="">
 <script>
+  const username = localStorage.getItem('username');
   window.onload = function() {
     document.getElementById('uploadButton').addEventListener('click', function() {
       const files = document.getElementById("fileInput").files;
@@ -31,7 +32,7 @@
       const containerName = "aplikacja";
       const username = document.getElementById('username').value;
       const blobName = `${username}/${file.name}`;
-      
+      localStorage.setItem('username', username);
       const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}${sasToken}`;
       fetch(url, {
         method: 'PUT',
