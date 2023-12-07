@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <title>List of Files</title>
     <script>
-        
         async function fetchFiles() {
             try {
-                const response = await fetch('/user-files?username=' + encodeURIComponent(username));
+                const response = await fetch('/all-files');
                 if (!response.ok) {
                     throw new Error('Network response was not ok.');
                 }
@@ -22,12 +21,9 @@
                 });
             } catch (error) {
                 console.error('Could not fetch files:', error);
+                fileListElement.innerHTML = `<li>Error loading files: ${error.message}</li>`;
             }
         }
-
-        // Pobierz nazwę użytkownika
-        const params = new URLSearchParams(window.location.search);
-        const username = localStorage.getItem('username');
 
         // Pobierz pliki przy ładowaniu strony
         window.onload = fetchFiles;
