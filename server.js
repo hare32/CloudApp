@@ -38,21 +38,7 @@ app.post('/create-container', async (req, res) => {
     }
 });
 
-app.get('/user-files', async (req, res) => {
-    try {
-        const username = req.query.username; // Pobierz nazwę użytkownika z parametrów zapytania
-        const containerClient = blobServiceClient.getContainerClient(username);
-        const blobs = [];
-        for await (const blob of containerClient.listBlobsFlat()) {
-            if(blob.name.startsWith(username + '/')) {
-                blobs.push(blob.name);
-            }
-        }
-        res.status(200).send(blobs);
-    } catch (error) {
-        res.status(500).send({ message: error.message });
-    }
-});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

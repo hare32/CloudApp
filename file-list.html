@@ -5,34 +5,46 @@
     <title>List of Files</title>
     <script>
         async function fetchFiles() {
-            try {
-                const response = await fetch('/all-files');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok.');
-                }
-                const files = await response.json();
-                const fileListElement = document.getElementById('file-list');
-                fileListElement.innerHTML = ''; // Wyczyść listę przed dodaniem nowych elementów
+            const storageAccountName = "cloudapp123";
+            const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-12-06T20:52:46Z&st=2023-12-06T12:52:46Z&spr=https&sig=S3c1OckbFNcLEf42h3MVw%2FaZLldkVLpv5fniSpgE58M%3D"; // Zastąp to swoim SAS Tokenem
+            const containerName = "aplikacja";
+            const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}?restype=container&comp=list${sasToken}`;
 
-                files.forEach(file => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = file;
-                    fileListElement.appendChild(listItem);
-                });
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.text();
+                parseAndDisplayFiles(data);
             } catch (error) {
                 console.error('Could not fetch files:', error);
-                fileListElement.innerHTML = `<li>Error loading files: ${error.message}</li>`;
+                document.getElementById("file-list").innerHTML = `<li>Error loading files: ${error.message}</li>`;
             }
         }
 
-        // Pobierz pliki przy ładowaniu strony
+        function parseAndDisplayFiles(data) {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(data, "application/xml");
+            const blobs = xml.getElementsByTagName("Blob");
+            const fileListElement = document.getElementById('file-list');
+            fileListElement.innerHTML = ''; // Wyczyść listę
+
+            for (let blob of blobs) {
+                const name = blob.getElementsByTagName("Name")[0].textContent;
+                const listItem = document.createElement('li');
+                listItem.textContent = name;
+                fileListElement.appendChild(listItem);
+            }
+        }
+
         window.onload = fetchFiles;
     </script>
 </head>
 <body>
     <h1>List of Files</h1>
     <ul id="file-list">
-        <!-- Lista plików będzie generowana tutaj -->
+        <!-- Lista plików będzie tutaj -->
     </ul>
 </body>
 </html>
