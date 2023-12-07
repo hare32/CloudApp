@@ -31,8 +31,7 @@
       const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-12-06T20:52:46Z&st=2023-12-06T12:52:46Z&spr=https&sig=S3c1OckbFNcLEf42h3MVw%2FaZLldkVLpv5fniSpgE58M%3D";
       const containerName = "aplikacja";
       const username = document.getElementById('username').value;
-      const blobName = `${username}/${file.name}`;
-      localStorage.setItem('username', username);
+      const blobName = file.name;
       const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}${sasToken}`;
       fetch(url, {
         method: 'PUT',
