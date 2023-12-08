@@ -3,49 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>List of Files</title>
-    <script>
-        async function fetchFiles() {
-            const storageAccountName = "cloudapp123";
-            const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-12-06T20:52:46Z&st=2023-12-06T12:52:46Z&spr=https&sig=S3c1OckbFNcLEf42h3MVw%2FaZLldkVLpv5fniSpgE58M%3D";
-            const containerName = "aplikacja";
-            
-const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}?restype=container&comp=list${sasToken}`;
-
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                const data = await response.text();
-                parseAndDisplayFiles(data);
-            } catch (error) {
-                console.error('Could not fetch files:', error);
-                document.getElementById("file-list").innerHTML = `<li>Error loading files: ${error.message}</li>`;
-            }
-        }
-
-        function parseAndDisplayFiles(data) {
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(data, "application/xml");
-            const blobs = xml.getElementsByTagName("Blob");
-            const fileListElement = document.getElementById('file-list');
-            fileListElement.innerHTML = ''; // Wyczyść listę
-
-            for (let blob of blobs) {
-                const name = blob.getElementsByTagName("Name")[0].textContent;
-                const listItem = document.createElement('li');
-                listItem.textContent = name;
-                fileListElement.appendChild(listItem);
-            }
-        }
-
-        window.onload = fetchFiles;
-    </script>
 </head>
 <body>
-    <h1>List of Files</h1>
-    <ul id="file-list">
-        <!-- Lista plików będzie tutaj -->
-    </ul>
+<h1>List of Files</h1>
+<!-- Zakładamy, że lista plików jest generowana przez backend i przekazywana do front-endu -->
+<ul id="file-list">
+    <!-- Lista plików będzie tutaj -->
+</ul>
 </body>
 </html>
