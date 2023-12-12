@@ -5,7 +5,15 @@ const app = express();
 app.use(express.json())
 const cors = require('cors');
 app.use(cors());
-;
+
+const path = require('path');
+app.use(express.json());
+
+app.use(express.static(path.join(__dirname, '')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '', 'index.html'));
+});
 
 const connection_string = "DefaultEndpointsProtocol=https;AccountName=spcabmktz;AccountKey=F1yxe7nId/HSeDOYW5o6L6Z+aB+kxyTxO2Vl6ZP77ffkUhtVWExTlWi8IDEL+Ih++PNSYcrAF/rl+AStpkWFzA==;EndpointSuffix=core.windows.net"
 const blobServiceClient = BlobServiceClient.fromConnectionString(connection_string);

@@ -2,7 +2,7 @@ const msalConfig = {
     auth: {
         clientId: "d3a8cec7-9a81-4676-bf1f-4b67735d63dc",
         authority: "https://login.microsoftonline.com/67ea5955-9b5c-4693-a8f9-960f2a3b49bb",
-        redirectUri: "https://hare32.github.io/CloudApp/dashboard.html", // Zaktualizuj to do twojego publicznego URL
+        redirectUri: "https://hare32.github.io/CloudApp/dashboard.html",
     }
 };
 
@@ -14,25 +14,36 @@ function signIn() {
         prompt: "select_account"
     });
 }
-const username = myMSALObj.getAccount().username;
 
 function handleResponse(loginResponse) {
     if (loginResponse !== null) {
-        localStorage.setItem('username',username);
-        // Użytkownik jest zalogowany, możemy teraz stworzyć kontener dla użytkownika
-        if (window.location.href.indexOf("upload.html") !== -1) {
-            document.getElementById('username').value = username;
-        }
-        createContainerForUser(username).then(containerUrl => {
-            console.log('Container URL:', containerUrl);
-            // Przekieruj użytkownika do dashboard.html z tym kontenerem URL
-            window.location.href = `dashboard.html?containerUrl=${encodeURIComponent(containerUrl)}`;
-        }).catch(error => {
-            console.error('Error during container creation:', error);
-        });
-    } else {
-        // Użytkownik nie jest zalogowany, możesz wyświetlić interfejs logowania
-        // Możliwe, że będziesz musiał obsłużyć to inaczej, na przykład pokazując komunikat
+        // Uzyskaj nazwę użytkownika z odpowiedzi
+        const username = loginResponse.account.username;
+        localStorage.setItem('username', username);
+
+        // Uzyskaj token dostępu
+        myMSALObj.acquireTokenSilent({ scopes: ["user.read"] })
+            .then(response => {
+                // Przechowaj token dostępu
+                localStorage.setItem('userToken', response.accessToken);
+
+                // Dodatkowa logika, jeśli jest na stronie upload.html
+                if (window.location.href.indexOf("upload.html") !== -1) {
+                    document.getElementById('username').value = username;
+                }
+
+                // Tworzenie kontenera dla użytkownika i przekierowanie
+                createContainerForUser(username).then(containerUrl => {
+                    console.log('Container URL:', containerUrl);
+                    window.location.href = `dashboard.html?containerUrl=${encodeURIComponent(containerUrl)}`;
+                }).catch(error => {
+                    console.error('Error during container creation:', error);
+                });
+
+            }).catch(error => {
+                // Obsługa błędów związanych z uzyskaniem tokenu
+                console.error('Error acquiring token:', error);
+            });
     }
 }
 
@@ -44,9 +55,7 @@ function signOut() {
     myMSALObj.logout();
 }
 
-// Wywołaj handleResponse na początku, aby obsłużyć przypadki, gdy użytkownik wraca po przekierowaniu
 if (window.location.href.indexOf("dashboard.html") === -1) {
-    // Tylko jeśli nie jesteśmy już na stronie dashboard.html
     myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
         console.error(error);
     });
