@@ -5,6 +5,21 @@
     <title>Dashboard</title>
 </head>
 <body>
+<script src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.js" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        myMSALObj.handleRedirectPromise().then((loginResponse) => {
+            if (loginResponse) {
+                console.log("Zalogowany użytkownik: ", loginResponse.account.username);
+            } else {
+                console.log("Użytkownik nie jest zalogowany.");
+            }
+        }).catch((error) => {
+            console.error("Błąd podczas przetwarzania redirect: ", error);
+        });
+    });
+    </script>
+<script src="auth.js"></script>
 <h1>Dashboard</h1>
 <nav>
     <ul>
@@ -14,8 +29,6 @@
         <li><a href="download.html">Download Files</a></li>
     </ul>
 </nav>
-<script src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.js" crossorigin="anonymous"></script>
-<script src="auth.js"></script>
 <button onclick="signOut()">Sign out</button>
 </body>
 </html>

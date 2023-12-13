@@ -27,7 +27,6 @@
     });
 
     function uploadFile(file) {
-      const userToken = localStorage.getItem('userToken');
       const storageAccountName = "cloudapp123";
       const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-12-06T20:52:46Z&st=2023-12-06T12:52:46Z&spr=https&sig=S3c1OckbFNcLEf42h3MVw%2FaZLldkVLpv5fniSpgE58M%3D";
       const containerName = "aplikacja";
@@ -39,7 +38,6 @@
         method: 'PUT',
         headers: {
           'x-ms-blob-type': 'BlockBlob',
-          'Authorization': `Bearer ${userToken}`
         },
         body: file
       })
