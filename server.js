@@ -52,3 +52,28 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+app.get('/download', async (req, res) => {
+    const filename = req.query.filename; // Get the filename from the query parameter
+    const storageAccountName = "cloudapp123";
+    const containerName = "aplikacja";
+    const sasToken = "sp=racwdli&st=2023-12-14T21:08:15Z&se=2024-12-15T05:08:15Z&sv=2022-11-02&sr=c&sig=e3bXOrlqyuyxMpYN6Dm%2BVfSYyvw5rtjb3ZOJ71aNGvY%3D";
+    const blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${filename}?${sasToken}`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    const fetch = require('node-fetch');
+
+    fetch(blobUrl)
+        .then(blobRes => {
+            if (blobRes.ok) {
+                blobRes.body.pipe(res);
+            } else {
+                res.status(blobRes.status).send('File not found or accessible.');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching file:', error);
+            res.status(500).send('Internal Server Error');
+        });
+});
+
+
