@@ -5,24 +5,33 @@
     <title>Rejestracja i Logowanie</title>
 </head>
 <body>
-    <script src="server.js"></script>
-    <h2>Rejestracja</h2>
-    <form action="/register" method="post">
-        <label for="username">Nazwa Użytkownika:</label><br>
-        <input type="text" id="username" name="username" required><br>
-        <label for="password">Hasło:</label><br>
-        <input type="password" id="password" name="password" required><br>
-        <input type="submit" value="Zarejestruj">
-    </form>
+<script src="server.js"></script>
+<h2>Rejestracja</h2>
+<form action="/register" method="post">
+    <label for="username">Nazwa Użytkownika:</label><br>
+    <input type="text" id="username" name="username" required><br>
+    <label for="password">Hasło:</label><br>
+    <input type="password" id="password" name="password" required><br>
+    <input type="submit" value="Zarejestruj">
+</form>
 
-    <h2>Logowanie</h2>
-    <form action="/login" id="loginForm" method="post">
-        <label for="login-username">Nazwa Użytkownika:</label><br>
-        <input type="text" id="login-username" name="username" required><br>
-        <label for="login-password">Hasło:</label><br>
-        <input type="password" id="login-password" name="password" required><br>
-        <input type="submit" value="Zaloguj">
-    </form>
-    
+<h2>Logowanie</h2>
+<form action="/login" id="loginForm" method="post">
+    <label for="login-username">Nazwa Użytkownika:</label><br>
+    <input type="text" id="login-username" name="username" required><br>
+    <label for="login-password">Hasło:</label><br>
+    <input type="password" id="login-password" name="password" required><br>
+    <input type="submit" value="Zaloguj">
+</form>
+
+<div id="error-message" style="color: red;"></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorMessage = urlParams.get('error');
+    if (errorMessage) {
+        document.getElementById('error-message').innerText = errorMessage;
+    }
+</script>
 </body>
 </html>
