@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>List of Files</title>
+  <meta charset="UTF-8">
+  <title>File List</title>
 </head>
 <body>
 <h1>List of Files</h1>
-<!-- Zakładamy, że lista plików jest generowana przez backend i przekazywana do front-endu -->
-<ul id="file-list">
-    <!-- Lista plików będzie tutaj -->
-</ul>
+<ul id="fileList"></ul>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("Skrypt się uruchamia");
+    const fileListElement = document.getElementById('fileList');
+    const username = localStorage.getItem('username');
+    const storageAccountName = "cloudapp123";
+    const containerName = "aplikacja";
+    const sasToken = "sp=racwdli&st=2023-12-14T21:08:15Z&se=2024-12-15T05:08:15Z&sv=2022-11-02&sr=c&sig=e3bXOrlqyuyxMpYN6Dm%2BVfSYyvw5rtjb3ZOJ71aNGvY%3D";
+
+    fetch(`https://${storageAccountName}.blob.core.windows.net/${containerName}?restype=container&comp=list&prefix=${username}&${sasToken}`)
+      .then(response => response.text())
+      .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+      .then(data => {
+        const files = data.querySelectorAll('Blob');
+        files.forEach(file => {
+          const name = file.querySelector('Name').textContent;
+          const listItem = document.createElement('li');
+          listItem.textContent = name;
+          fileListElement.appendChild(listItem);
+        });
+      })
+      .catch(error => console.error('Error fetching files:', error));
+  });
+</script>
 </body>
 </html>

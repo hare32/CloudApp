@@ -5,11 +5,7 @@
     <title>Dashboard</title>
 </head>
 <body>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
 <script src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.js" crossorigin="anonymous"></script>
-<script src="auth.js"></script>
 <h1>Dashboard</h1>
 <nav>
     <ul>
@@ -19,8 +15,14 @@
         <li><a href="download.html">Download Files</a></li>
     </ul>
 </nav>
-<button onclick="signOut()">Sign out</button>
+<button onclick="logout()">Sign out</button>
+
 <script>
+    function logout() {
+        localStorage.removeItem('username');
+        window.location.href = '/';
+    }
+
     window.onload = function() {
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
