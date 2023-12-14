@@ -24,8 +24,9 @@
         const files = data.querySelectorAll('Blob');
         files.forEach(file => {
           const name = file.querySelector('Name').textContent;
+          const fileName = name.split('/').pop();
           const listItem = document.createElement('li');
-          listItem.textContent = name;
+          listItem.textContent = fileName;
           fileListElement.appendChild(listItem);
         });
       })
