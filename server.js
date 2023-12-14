@@ -7,7 +7,6 @@ const path = require('path');
 const db = new sqlite3.Database('usersDataBase.db');
 const cors = require('cors');
 app.use(cors());
-;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -27,9 +26,9 @@ app.post('/register', (req, res) => {
 
     db.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', [username, hashedPassword], (err) => {
         if (err) {
-            res.status(500).send("Błąd podczas rejestracji użytkownika.");
+            res.redirect('/?error=Błąd podczas rejestracji użytkownika.');
         } else {
-            res.send("Użytkownik zarejestrowany.");
+            res.redirect('/?error=');
         }
     });
 });
@@ -39,11 +38,11 @@ app.post('/login', (req, res) => {
 
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
         if (err) {
-            res.status(500).send("Błąd podczas logowania.");
+            res.redirect('/?error=Błąd podczas logowania.');
         } else if (row && bcrypt.compareSync(password, row.password_hash)) {
             res.redirect(`/dashboard.html?username=${encodeURIComponent(username)}`);
         } else {
-            res.send("Nieprawidłowa nazwa użytkownika lub hasło.");
+            res.redirect('/?error=Nieprawidłowa nazwa użytkownika lub hasło.');
         }
     });
 });
