@@ -11,13 +11,34 @@
     <input type="hidden" id="fullFilenameInput" name="fullFilename">
     <button type="submit">Download</button>
 </form>
+<div id="downloadStatus"></div>
 
 <script>
-    document.getElementById('downloadForm').addEventListener('submit', function(event) {
-        var username = localStorage.getItem('username'); // Pobierz nazwę użytkownika z localStorage
+    document.getElementById('downloadForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        var username = localStorage.getItem('username');
         var filenameInput = document.getElementById('filenameInput');
         var fullFilenameInput = document.getElementById('fullFilenameInput');
-        fullFilenameInput.value = username + '/' + filenameInput.value; // Ustaw pełną ścieżkę pliku
+        fullFilenameInput.value = username + '/' + filenameInput.value;
+
+        try {
+            const response = await fetch(`/download?filename=${filenameInput.value}&fullFilename=${fullFilenameInput.value}`);
+
+            if (!response.ok) {
+                throw new Error(`Download failed with status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = window.URL.createObjectURL(blob);
+            downloadLink.download = filenameInput.value;
+            downloadLink.click();
+            document.getElementById('downloadStatus').innerText = 'Download successful';
+        } catch (error) {
+            document.getElementById('downloadStatus').innerText = 'File not found or download failed. Please check the filename and try again.';
+        }
     });
 </script>
 </body>
