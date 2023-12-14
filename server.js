@@ -5,6 +5,9 @@ const bcrypt = require('bcrypt');
 const app = express();
 const path = require('path');
 const db = new sqlite3.Database('usersDataBase.db');
+const cors = require('cors');
+app.use(cors());
+;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -38,8 +41,7 @@ app.post('/login', (req, res) => {
         if (err) {
             res.status(500).send("Błąd podczas logowania.");
         } else if (row && bcrypt.compareSync(password, row.password_hash)) {
-            // Przekierowanie na dashboard.html po poprawnym zalogowaniu
-            res.redirect('/dashboard.html');
+            res.redirect(`/dashboard.html?username=${encodeURIComponent(username)}`);
         } else {
             res.send("Nieprawidłowa nazwa użytkownika lub hasło.");
         }
