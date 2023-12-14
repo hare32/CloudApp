@@ -53,11 +53,21 @@ app.listen(port, () => {
 });
 
 app.get('/download', async (req, res) => {
-    const filename = req.query.fullFilename;
+    const fullFilename = req.query.fullFilename; // Pełna ścieżka pliku, np. 'username/plan.jpg'
+
+    if (!fullFilename) {
+        return res.status(400).send('Filename is required');
+    }
+
+    // Rozdziel pełną ścieżkę pliku i użyj ostatniej części jako nazwy pliku do pobrania
+    const parts = fullFilename.split('/');
+    const filename = parts.pop(); // Pobiera ostatni element z tablicy parts
+
     const storageAccountName = "cloudapp123";
     const containerName = "aplikacja";
     const sasToken = "sp=racwdli&st=2023-12-14T21:08:15Z&se=2024-12-15T05:08:15Z&sv=2022-11-02&sr=c&sig=e3bXOrlqyuyxMpYN6Dm%2BVfSYyvw5rtjb3ZOJ71aNGvY%3D";
-    const blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${filename}?${sasToken}`;
+    const blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${fullFilename}?${sasToken}`;
+
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     const fetch = require('node-fetch');
 
@@ -74,5 +84,4 @@ app.get('/download', async (req, res) => {
             res.status(500).send('Internal Server Error');
         });
 });
-
 
