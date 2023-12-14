@@ -6,10 +6,19 @@
 </head>
 <body>
 <h1>Download File</h1>
-<form action="/download" method="get">
-    <input type="text" name="filename" placeholder="Enter filename" required>
+<form id="downloadForm" action="/download" method="get">
+    <input type="text" id="filenameInput" name="filename" placeholder="Enter filename" required>
+    <input type="hidden" id="fullFilenameInput" name="fullFilename">
     <button type="submit">Download</button>
 </form>
+
+<script>
+    document.getElementById('downloadForm').addEventListener('submit', function(event) {
+        var username = localStorage.getItem('username'); // Pobierz nazwę użytkownika z localStorage
+        var filenameInput = document.getElementById('filenameInput');
+        var fullFilenameInput = document.getElementById('fullFilenameInput');
+        fullFilenameInput.value = username + '/' + filenameInput.value; // Ustaw pełną ścieżkę pliku
+    });
+</script>
 </body>
 </html>
-
