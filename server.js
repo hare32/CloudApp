@@ -26,7 +26,7 @@ app.post('/register', (req, res) => {
         if (err) {
             res.status(500).send("Błąd podczas rejestracji użytkownika.");
         } else {
-            res.send("Użytkownik zarejestrowany."); 
+            res.send("Użytkownik zarejestrowany.");
         }
     });
 });
@@ -38,12 +38,14 @@ app.post('/login', (req, res) => {
         if (err) {
             res.status(500).send("Błąd podczas logowania.");
         } else if (row && bcrypt.compareSync(password, row.password_hash)) {
-            res.send("Zalogowano pomyślnie.");
+            // Przekierowanie na dashboard.html po poprawnym zalogowaniu
+            res.redirect('/dashboard.html');
         } else {
             res.send("Nieprawidłowa nazwa użytkownika lub hasło.");
         }
     });
 });
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

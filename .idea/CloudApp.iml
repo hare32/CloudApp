@@ -6,8 +6,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="azure-storage-blob" level="application" />
-    <orderEntry type="library" name="@azure" level="application" />
-    <orderEntry type="library" name="@azure/storage-blob" level="application" />
     <orderEntry type="library" name="msal-browser" level="application" />
     <orderEntry type="library" name="msal-browser" level="application" />
   </component>
