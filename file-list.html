@@ -77,7 +77,9 @@
                   const versionsButton = document.createElement('button');
                   versionsButton.textContent = 'Versions';
                   versionsButton.onclick = function () {
-                    fetch(`/api/versions/${file.name}`)
+                    const baseFileName = file.name.replace(/_v\d+\./, '.'); // Replaces '_v[number].' with '.'
+
+                    fetch(`/api/versions/${baseFileName}`)
                             .then(response => response.json())
                             .then(versions => {
                               let versionInfo = versions.map(v => `Version: ${v.version}, Last Modified: ${v.lastModified}`).join('\n');
