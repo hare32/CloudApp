@@ -20,7 +20,9 @@
   <tr>
     <th>#</th>
     <th>File Name</th>
+    <th>Last Modified</th>
     <th>Download</th>
+    <th>Versions</th>
   </tr>
 </table>
 
@@ -32,48 +34,64 @@
     const containerName = "aplikacja";
     const sasToken = "sp=racwdli&st=2023-12-14T21:08:15Z&se=2024-12-15T05:08:15Z&sv=2022-11-02&sr=c&sig=e3bXOrlqyuyxMpYN6Dm%2BVfSYyvw5rtjb3ZOJ71aNGvY%3D";
 
-    fetch(`https://${storageAccountName}.blob.core.windows.net/${containerName}?restype=container&comp=list&prefix=${username}&${sasToken}`)
-            .then(response => response.text())
-            .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
-            .then(data => {
-              const files = data.querySelectorAll('Blob');
-              let fileNumber = 1;
-              files.forEach(file => {
-                const name = file.querySelector('Name').textContent;
-                const fileName = name.split('/').pop();
 
-                const row = fileListElement.insertRow();
-                const cell1 = row.insertCell(0);
-                const cell2 = row.insertCell(1);
-                const cell3 = row.insertCell(2);
+      fetch('/api/files')
+              .then(response => response.json())
+              .then(files => {
+                let fileNumber = 1;
+                files.forEach(file => {
+                  //const name = file.name;
+                  //const fileName = name.split('/').pop();
+                  const row = fileListElement.insertRow();
+                  const cell1 = row.insertCell(0);
+                  const cell2 = row.insertCell(1);
+                  const cell3 = row.insertCell(2);
+                  const cell4 = row.insertCell(3);
+                  const cell5 = row.insertCell(4);
 
-                cell1.innerHTML = fileNumber++;
-                cell2.innerHTML = fileName;
+                  // Directly use the file object properties
+                  cell1.innerHTML = fileNumber++;
+                  cell2.innerHTML = file.name;
+                  cell3.innerHTML = file.lastModified;
 
-                const downloadButton = document.createElement('button');
-                downloadButton.textContent = 'Download';
-                downloadButton.onclick = async () => {
-                  // Download logic
-                  try {
-                    const response = await fetch(`https://${storageAccountName}.blob.core.windows.net/${containerName}/${name}?${sasToken}`);
-                    if (!response.ok) {
-                      throw new Error(`Download failed with status: ${response.status}`);
+                  const downloadButton = document.createElement('button');
+                  downloadButton.textContent = 'Download';
+                  downloadButton.onclick = async () => {
+                    const filePath = `${username}/${file.name}`;
+                    const blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${filePath}?${sasToken}`;
+                    try {
+                      const response = await fetch(blobUrl);
+                      if (!response.ok) {
+                        throw new Error(`Download failed with status: ${response.status}`);
+                      }
+                      const blob = await response.blob();
+                      const downloadLink = document.createElement('a');
+                      downloadLink.href = window.URL.createObjectURL(blob);
+                      downloadLink.download = file.name;
+                      downloadLink.click();
+                    } catch (error) {
+                      console.error('Download failed:', error);
                     }
-                    const blob = await response.blob();
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = window.URL.createObjectURL(blob);
-                    downloadLink.download = fileName;
-                    downloadLink.click();
-                  } catch (error) {
-                    console.error('Download failed:', error);
-                  }
-                };
+                  };
 
-                cell3.appendChild(downloadButton);
-              });
-            })
-            .catch(error => console.error('Error fetching files:', error));
+                  const versionsButton = document.createElement('button');
+                  versionsButton.textContent = 'Versions';
+                  versionsButton.onclick = function () {
+                    fetch(`/api/versions/${file.name}`)
+                            .then(response => response.json())
+                            .then(versions => {
+                              let versionInfo = versions.map(v => `Version: ${v.version}, Last Modified: ${v.lastModified}`).join('\n');
+                              alert(versionInfo);
+                            })
+                            .catch(error => console.error('Error fetching versions:', error));
+                  };
+                  cell4.appendChild(downloadButton);
+                  cell5.appendChild(versionsButton);
+                });
+              })
+              .catch(error => console.error('Error fetching files:', error));
   });
+
 </script>
 </body>
 </html>

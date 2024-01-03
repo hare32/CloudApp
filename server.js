@@ -134,3 +134,44 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         res.status(500).send('Error during file upload');
     }
 });
+
+
+app.get('/api/files', async (req, res) => {
+    db.all('SELECT FileName, MAX(FileVersion) as LatestVersion, MAX(LastModified) as LastModified FROM FileVersions GROUP BY FileName', [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching files:', err);
+            return res.status(500).send('Error fetching files');
+        }
+        res.json(rows.map(row => {
+            // Extract the file extension and insert the version before the extension
+            const fileParts = row.FileName.split('.');
+            const fileNameWithoutExt = fileParts.slice(0, -1).join('.');
+            const fileExtension = fileParts.slice(-1)[0];
+            const fullName = row.LatestVersion > 1 ? `${fileNameWithoutExt}_v${row.LatestVersion}.${fileExtension}` : row.FileName;
+            return {
+                name: fullName,
+                lastModified: row.LastModified
+            };
+        }));
+    });
+});
+
+
+app.get('/api/versions/:fileName', async (req, res) => {
+    const fileName = req.params.fileName;
+
+    db.all('SELECT * FROM FileVersions WHERE FileName = ? ORDER BY FileVersion DESC', [fileName], (err, rows) => {
+        if (err) {
+            console.error('Error fetching file versions:', err);
+            return res.status(500).send('Error fetching file versions');
+        }
+        res.json(rows.map(row => {
+            return {
+                version: row.FileVersion,
+                size: row.FileSize,
+                lastModified: row.LastModified,
+                filePath: row.FilePath
+            };
+        }));
+    });
+});
