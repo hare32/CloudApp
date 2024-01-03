@@ -101,6 +101,7 @@
       <tr>
         <th>#</th>
         <th>File Name</th>
+        <th>File Size</th>
         <th>Last Modified</th>
         <th>Download</th>
       </tr>`;
@@ -110,11 +111,12 @@
       const versionedFileName = version.version > 1 ? `${baseFileName.split('.')[0]}_v${version.version}.${baseFileName.split('.').pop()}` : baseFileName;
       row.insertCell(0).innerHTML = index + 1;
       row.insertCell(1).innerHTML = versionedFileName;
-      row.insertCell(2).innerHTML = version.lastModified;
+      row.insertCell(2).innerHTML = version.size;
+      row.insertCell(3).innerHTML = version.lastModified;
       const downloadButton = document.createElement('button');
       downloadButton.textContent = 'Download';
       downloadButton.onclick = () => downloadFile(version.filePath, versionedFileName);
-      row.insertCell(3).appendChild(downloadButton);
+      row.insertCell(4).appendChild(downloadButton);
     });
 
     versionsDiv.appendChild(table);
