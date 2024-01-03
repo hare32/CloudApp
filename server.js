@@ -119,7 +119,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
             const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
 
-            db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\'), ?)',
+            db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
                 [username, originalName, newVersion, file.size, filePathInDB],
                 (dbErr) => {
                     if (dbErr) {
@@ -137,7 +137,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
 
 app.get('/api/files', async (req, res) => {
-    db.all('SELECT FileName, MAX(FileVersion) as LatestVersion, MAX(LastModified) as LastModified FROM FileVersions GROUP BY FileName', [], (err, rows) => {
+    const username = req.query.username;
+    db.all('SELECT FileName, MAX(FileVersion) as LatestVersion, MAX(LastModified) as LastModified FROM FileVersions WHERE UserName = ? GROUP BY FileName', [username], (err, rows) => {
         if (err) {
             console.error('Error fetching files:', err);
             return res.status(500).send('Error fetching files');
