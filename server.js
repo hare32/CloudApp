@@ -109,7 +109,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
                 newVersion = row.maxVersion + 1;
             }
 
-            const blobName = `${username}/${originalName.split('.')[0]}_v${newVersion}.${originalName.split('.').pop()}`;
+            let versionSuffix = newVersion > 1 ? `_v${newVersion}` : '';
+            const blobName = `${username}/${originalName.split('.')[0]}${versionSuffix}.${originalName.split('.').pop()}`;
             const blobServiceClient = BlobServiceClient.fromConnectionString("DefaultEndpointsProtocol=https;AccountName=cloudapp123;AccountKey=UXeoymEZyr99Qrn4Fe9i0zeJbWYd9Be40vv5DMLYOSJwKmkudA8qrFjH8Ay5m6402q7j6RS5QD4f+AStBwCvXg==;EndpointSuffix=core.windows.net");
             const containerClient = blobServiceClient.getContainerClient('aplikacja');
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -119,7 +120,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
             const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
 
             db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\'), ?)',
-                [username, originalName, newVersion, file.size, file.path],
+                [username, originalName, newVersion, file.size, filePathInDB],
                 (dbErr) => {
                     if (dbErr) {
                         console.error('Database error:', dbErr);
