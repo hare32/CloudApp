@@ -9,7 +9,6 @@
 <input type="file" id="fileInput" multiple required>
 <button id="uploadButton">Upload</button>
 <div id="status"></div>
-<input type="hidden" id="username" value="">
 <script>
   const username = localStorage.getItem('username');
   window.onload = function() {
@@ -27,22 +26,17 @@
     });
 
     function uploadFile(file) {
-      const storageAccountName = "cloudapp123";
-      const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-12-06T20:52:46Z&st=2023-12-06T12:52:46Z&spr=https&sig=S3c1OckbFNcLEf42h3MVw%2FaZLldkVLpv5fniSpgE58M%3D";
-      const containerName = "aplikacja";
-      const username = localStorage.getItem('username');
-      const blobName = `${username}/${file.name}`;
-      const url = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}${sasToken}`;
-      fetch(url, {
-        method: 'PUT',
-        headers: {
-          'x-ms-blob-type': 'BlockBlob',
-        },
-        body: file
+      let formData = new FormData();
+      formData.append('file', file);
+      formData.append('username', username);
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
       })
               .then(response => {
                 if (!response.ok) {
-                  throw new Error(`Azure upload failed with status: ${response.status}`);
+                  throw new Error(`Server upload failed with status: ${response.status}`);
                 }
                 return response.text();
               })
