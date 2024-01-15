@@ -62,7 +62,7 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
-app.get('/download', authenticateToken, async (req, res) => {
+app.get('/download', async (req, res) => {
     const fullFilename = req.query.fullFilename; // Pełna ścieżka pliku, np. 'username/plan.jpg'
 
     if (!fullFilename) {
@@ -95,7 +95,7 @@ app.get('/download', authenticateToken, async (req, res) => {
         });
 });
 
-app.post('/uploud', authenticateToken, upload.single('file'), async (req, res) => {
+app.post('/upload',  upload.single('file'), async (req, res) => {
     const file = req.file;
     const originalName = file.originalname;
     const username = req.body.username;
