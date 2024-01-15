@@ -11,6 +11,7 @@ const db = new sqlite3.Database('usersDataBase.db');
 const cors = require('cors');
 const { open } = require('sqlite');
 const upload = multer({ dest: 'uploads/' });
+const jwt = require('jsonwebtoken');
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -21,10 +22,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '', 'index.html'));
 });
 
-app.get('/dashboard.html', (req, res) => {
+app.get('/dashboard.html', authenticateToken, (req, res) => {
     res.sendFile(path.join(__dirname, '', 'dashboard.html'));
 });
 
+app.get('/uploud' ,authenticateToken, (req, res) => {
+
+})
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -45,7 +49,8 @@ app.post('/login', (req, res) => {
         if (err) {
             res.redirect('/?error=Błąd podczas logowania.');
         } else if (row && bcrypt.compareSync(password, row.password_hash)) {
-            res.redirect(`/dashboard.html?username=${encodeURIComponent(username)}`);
+            const token = jwt.sign({ username: username }, 'tajny_klucz', { expiresIn: '1h' });
+            res.redirect(`/dashboard.html?username=${encodeURIComponent(username)}&token=${token}`);
         } else {
             res.redirect('/?error=Nieprawidłowa nazwa użytkownika lub hasło.');
         }
@@ -57,7 +62,7 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
-app.get('/download', async (req, res) => {
+app.get('/download', authenticateToken, async (req, res) => {
     const fullFilename = req.query.fullFilename; // Pełna ścieżka pliku, np. 'username/plan.jpg'
 
     if (!fullFilename) {
@@ -90,7 +95,7 @@ app.get('/download', async (req, res) => {
         });
 });
 
-app.post('/upload', upload.single('file'), async (req, res) => {
+app.post('/uploud', authenticateToken, upload.single('file'), async (req, res) => {
     const file = req.file;
     const originalName = file.originalname;
     const username = req.body.username;
@@ -136,7 +141,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 });
 
 
-app.get('/api/files', async (req, res) => {
+app.get('/api/files', authenticateToken, async (req, res) => {
     const username = req.query.username;
     db.all('SELECT FileName, MAX(FileVersion) as LatestVersion, MAX(LastModified) as LastModified FROM FileVersions WHERE UserName = ? GROUP BY FileName', [username], (err, rows) => {
         if (err) {
@@ -158,7 +163,7 @@ app.get('/api/files', async (req, res) => {
 });
 
 
-app.get('/api/versions/:fileName', async (req, res) => {
+app.get('/api/versions/:fileName', authenticateToken, async (req, res) => {
     const fileName = req.params.fileName;
 
     db.all('SELECT * FROM FileVersions WHERE FileName = ? ORDER BY FileVersion DESC', [fileName], (err, rows) => {
@@ -176,3 +181,14 @@ app.get('/api/versions/:fileName', async (req, res) => {
         }));
     });
 });
+
+function authenticateToken(req, res, next) {
+    const token = req.headers['authorization'];
+    if (token == null) return res.status(401).json({ error: 'No token provided' });
+
+    jwt.verify(token, 'tajny_klucz', (err, user) => {
+        if (err) return res.status(403).json({ error: 'Invalid token, please log in again' });
+        req.user = user;
+        next();
+    });
+}

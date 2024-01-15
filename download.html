@@ -14,6 +14,24 @@
 <div id="downloadStatus"></div>
 
 <script>
+    fetch('/api/files', {
+            headers: { 'Authorization': localStorage.getItem('token') }})
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Unknown error');
+                    });
+                }
+                return response.json();
+            })
+            .catch(error => {
+                if (error.message === 'Invalid token, please log in again') {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    alert('Błędny token, zaloguj się ponownie');
+                    window.location.href = '/index.html';
+                }
+            });
     document.getElementById('downloadForm').addEventListener('submit', async function(event) {
         event.preventDefault();
 

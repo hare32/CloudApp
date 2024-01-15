@@ -10,6 +10,24 @@
 <button id="uploadButton">Upload</button>
 <div id="status"></div>
 <script>
+  fetch('/api/files', {
+    headers: { 'Authorization': localStorage.getItem('token') }})
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || 'Unknown error');
+            });
+        }
+        return response.json();
+    })
+    .catch(error => {
+        if (error.message === 'Invalid token, please log in again') {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            alert('Błędny token, zaloguj się ponownie');
+            window.location.href = '/index.html';
+        }
+    });
   const username = localStorage.getItem('username');
   window.onload = function() {
     document.getElementById('uploadButton').addEventListener('click', function() {

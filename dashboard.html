@@ -17,17 +17,42 @@
 <button onclick="logout()">Sign out</button>
 
 <script>
+    fetch('/dashboard.html')
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || 'Unknown error');
+            });
+        }
+        return response.json();
+    })
+    .catch(error => {
+        if (error.message === 'No token provided') {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            alert('Błędny token, zaloguj się ponownie');
+            window.location.href = '/index.html';
+        }
+    });
+
+
+
     function logout() {
-        localStorage.removeItem('username');
-        window.location.href = '/';
+    localStorage.removeItem('username');
+    localStorage.removeItem('token');
+    window.location.href = '/';
     }
 
     window.onload = function() {
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
-        if (username) {
+        const token = params.get('token');
+
+        if (username && token) {
             localStorage.setItem('username', username);
-            history.replaceState(null, null, window.location.pathname);
+            localStorage.setItem('token', token);
+            const newUrl = window.location.pathname;
+            history.replaceState(null, null, newUrl);
         }
     };
 </script>
