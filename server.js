@@ -4,6 +4,7 @@ const multer = require('multer');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
+const crypto = require('crypto'); // Add crypto module for checksum
 const app = express();
 const fs = require('fs').promises;
 const path = require('path');
@@ -26,9 +27,6 @@ app.get('/dashboard.html', authenticateToken, (req, res) => {
     res.sendFile(path.join(__dirname, '', 'dashboard.html'));
 });
 
-app.get('/uploud' ,authenticateToken, (req, res) => {
-
-})
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -63,15 +61,14 @@ app.listen(port, () => {
 });
 
 app.get('/download', async (req, res) => {
-    const fullFilename = req.query.fullFilename; // Pełna ścieżka pliku, np. 'username/plan.jpg'
+    const fullFilename = req.query.fullFilename;
 
     if (!fullFilename) {
         return res.status(400).send('Filename is required');
     }
 
-    // Rozdziel pełną ścieżkę pliku i użyj ostatniej części jako nazwy pliku do pobrania
     const parts = fullFilename.split('/');
-    const filename = parts.pop(); // Pobiera ostatni element z tablicy parts
+    const filename = parts.pop();
 
     const storageAccountName = "cloudapp123";
     const containerName = "aplikacja";
@@ -95,7 +92,7 @@ app.get('/download', async (req, res) => {
         });
 });
 
-app.post('/upload',  upload.single('file'), async (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {
     const file = req.file;
     const originalName = file.originalname;
     const username = req.body.username;
@@ -122,24 +119,30 @@ app.post('/upload',  upload.single('file'), async (req, res) => {
 
             await blockBlobClient.uploadFile(file.path);
 
-            const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
+            const fileData = await fs.readFile(file.path);
+            const calculatedChecksum = crypto.createHash('sha256').update(fileData).digest('hex');
+            if (req.body.hash === calculatedChecksum) {
+                const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
 
-            db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
-                [username, originalName, newVersion, file.size, filePathInDB],
-                (dbErr) => {
-                    if (dbErr) {
-                        console.error('Database error:', dbErr);
-                        return res.status(500).send('Error during database update');
-                    }
-                    res.send('File uploaded and versioned successfully');
-                });
+                db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
+                    [username, originalName, newVersion, file.size, filePathInDB],
+                    (dbErr) => {
+                        if (dbErr) {
+                            console.error('Database error:', dbErr);
+                            return res.status(500).send('Error during database update');
+                        }
+                        res.send('File uploaded and versioned successfully');
+                    });
+            } else {
+                fs.unlink(file.path);
+                res.status(400).send('Checksum mismatch. File may have been tampered with.');
+            }
         });
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).send('Error during file upload');
     }
 });
-
 
 app.get('/api/files', authenticateToken, async (req, res) => {
     const username = req.query.username;
@@ -149,7 +152,6 @@ app.get('/api/files', authenticateToken, async (req, res) => {
             return res.status(500).send('Error fetching files');
         }
         res.json(rows.map(row => {
-            // Extract the file extension and insert the version before the extension
             const fileParts = row.FileName.split('.');
             const fileNameWithoutExt = fileParts.slice(0, -1).join('.');
             const fileExtension = fileParts.slice(-1)[0];
@@ -161,7 +163,6 @@ app.get('/api/files', authenticateToken, async (req, res) => {
         }));
     });
 });
-
 
 app.get('/api/versions/:fileName', async (req, res) => {
     const fileName = req.params.fileName;
