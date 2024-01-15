@@ -163,7 +163,7 @@ app.get('/api/files', authenticateToken, async (req, res) => {
 });
 
 
-app.get('/api/versions/:fileName', authenticateToken, async (req, res) => {
+app.get('/api/versions/:fileName', async (req, res) => {
     const fileName = req.params.fileName;
 
     db.all('SELECT * FROM FileVersions WHERE FileName = ? ORDER BY FileVersion DESC', [fileName], (err, rows) => {
