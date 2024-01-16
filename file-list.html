@@ -23,19 +23,24 @@
 <div id="versionsDiv"></div>
 
 <script>
+  function sendLog(level, message) {
+        fetch('/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ level, message })
+            });
+        }
   const storageAccountName = "cloudapp123";
   const containerName = "aplikacja";
   const sasToken = "sp=racwdli&st=2023-12-14T21:08:15Z&se=2024-12-15T05:08:15Z&sv=2022-11-02&sr=c&sig=e3bXOrlqyuyxMpYN6Dm%2BVfSYyvw5rtjb3ZOJ71aNGvY%3D";
 
   function downloadFile(filePath, fileName) {
     let blobUrl;
-
-    // Check if filePath already includes the full URL
     if (filePath.includes('https://')) {
-      // If filePath already includes the full URL, append the SAS token
       blobUrl = `${filePath}?${sasToken}`;
     } else {
-      // If filePath does not include the full URL, construct it with SAS token
       blobUrl = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${filePath}?${sasToken}`;
     }
 
@@ -46,10 +51,10 @@
               downloadLink.href = window.URL.createObjectURL(blob);
               downloadLink.download = fileName;
               downloadLink.click();
+              sendLog('info', `Użytkownik ${localStorage.getItem('username')} pobrał plik ${fileName}`);
             })
             .catch(error => console.error('Download failed:', error));
   }
-
 
   document.addEventListener('DOMContentLoaded', function() {  
     const fileListElement = document.getElementById('fileList');

@@ -4,7 +4,6 @@ const multer = require('multer');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
-const crypto = require('crypto'); // Add crypto module for checksum
 const app = express();
 const fs = require('fs').promises;
 const path = require('path');
@@ -13,6 +12,7 @@ const cors = require('cors');
 const { open } = require('sqlite');
 const upload = multer({ dest: 'uploads/' });
 const jwt = require('jsonwebtoken');
+const winston = require('winston');
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -27,6 +27,9 @@ app.get('/dashboard.html', authenticateToken, (req, res) => {
     res.sendFile(path.join(__dirname, '', 'dashboard.html'));
 });
 
+app.get('/uploud' ,authenticateToken, (req, res) => {
+
+})
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -38,6 +41,7 @@ app.post('/register', (req, res) => {
             res.redirect('/?error=');
         }
     });
+    logger.info(`Użytkownik ${username} zarejestrował się`);
 });
 
 app.post('/login', (req, res) => {
@@ -47,6 +51,7 @@ app.post('/login', (req, res) => {
         if (err) {
             res.redirect('/?error=Błąd podczas logowania.');
         } else if (row && bcrypt.compareSync(password, row.password_hash)) {
+            logger.info(`Użytkownik ${username} zalogował się`);
             const token = jwt.sign({ username: username }, 'tajny_klucz', { expiresIn: '1h' });
             res.redirect(`/dashboard.html?username=${encodeURIComponent(username)}&token=${token}`);
         } else {
@@ -62,14 +67,11 @@ app.listen(port, () => {
 
 app.get('/download', async (req, res) => {
     const fullFilename = req.query.fullFilename;
-
     if (!fullFilename) {
         return res.status(400).send('Filename is required');
     }
-
     const parts = fullFilename.split('/');
     const filename = parts.pop();
-
     const storageAccountName = "cloudapp123";
     const containerName = "aplikacja";
     const sasToken = "sp=racwdli&st=2023-12-14T21:08:15Z&se=2024-12-15T05:08:15Z&sv=2022-11-02&sr=c&sig=e3bXOrlqyuyxMpYN6Dm%2BVfSYyvw5rtjb3ZOJ71aNGvY%3D";
@@ -92,7 +94,7 @@ app.get('/download', async (req, res) => {
         });
 });
 
-app.post('/upload', upload.single('file'), async (req, res) => {
+app.post('/upload',  upload.single('file'), async (req, res) => {
     const file = req.file;
     const originalName = file.originalname;
     const username = req.body.username;
@@ -119,30 +121,25 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
             await blockBlobClient.uploadFile(file.path);
 
-            const fileData = await fs.readFile(file.path);
-            const calculatedChecksum = crypto.createHash('sha256').update(fileData).digest('hex');
-            if (req.body.hash === calculatedChecksum) {
-                const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
+            const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
 
-                db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
-                    [username, originalName, newVersion, file.size, filePathInDB],
-                    (dbErr) => {
-                        if (dbErr) {
-                            console.error('Database error:', dbErr);
-                            return res.status(500).send('Error during database update');
-                        }
-                        res.send('File uploaded and versioned successfully');
-                    });
-            } else {
-                fs.unlink(file.path);
-                res.status(400).send('Checksum mismatch. File may have been tampered with.');
-            }
+            db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
+                [username, originalName, newVersion, file.size, filePathInDB],
+                (dbErr) => {
+                    if (dbErr) {
+                        console.error('Database error:', dbErr);
+                        return res.status(500).send('Error during database update');
+                    }
+                    res.send('File uploaded and versioned successfully');
+                    logger.info(`Użytkownik ${username} wysłał plik ${originalName}`);
+                });
         });
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).send('Error during file upload');
     }
 });
+
 
 app.get('/api/files', authenticateToken, async (req, res) => {
     const username = req.query.username;
@@ -163,6 +160,7 @@ app.get('/api/files', authenticateToken, async (req, res) => {
         }));
     });
 });
+
 
 app.get('/api/versions/:fileName', async (req, res) => {
     const fileName = req.params.fileName;
@@ -192,4 +190,31 @@ function authenticateToken(req, res, next) {
         req.user = user;
         next();
     });
+}
+
+app.post('/log', (req, res) => {
+    const { level, message } = req.body;
+    logger.log(level, message);
+    res.status(200).send('Log received');
+});
+
+const logFormat = winston.format.combine(
+    winston.format.timestamp({
+    format: 'YYYY-MM-DD HH:mm:ss'
+    }),
+    winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+);
+const logger = winston.createLogger({
+    level: 'info',
+    format: logFormat,
+    transports: [
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' })
+    ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+    logger.add(new winston.transports.Console({
+      format: winston.format.simple(),
+    }));
 }

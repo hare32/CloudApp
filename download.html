@@ -14,6 +14,15 @@
 <div id="downloadStatus"></div>
 
 <script>
+    function sendLog(level, message) {
+        fetch('/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ level, message })
+            });
+        }
     fetch('/api/files', {
             headers: { 'Authorization': localStorage.getItem('token') }})
             .then(response => {
@@ -54,8 +63,9 @@
             downloadLink.download = filenameInput.value;
             downloadLink.click();
             document.getElementById('downloadStatus').innerText = 'Download successful';
+            sendLog('info', `Użytkownik ${username} pobrał plik ${filenameInput.value}`);
         } catch (error) {
-            document.getElementById('downloadStatus').innerText = 'File not found or download failed. Please check the filename and try again.';
+            document.getElementById('downloadStatus').innerText = '';
         }
     });
 </script>
