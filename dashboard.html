@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Panel sterowania</title>
 </head>
 <body>
 <script src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.js" crossorigin="anonymous"></script>
-<h1>Dashboard</h1>
+<h1>Panel sterowania</h1>
 <nav>
     <ul>
-        <li><a href="upload.html">Upload File</a></li>
-        <li><a href="file-list.html">File List</a></li>
-        <li><a href="download.html">Download Files</a></li>
+        <li><a href="upload.html">Wyslij plik</a></li>
+        <li><a href="file-list.html">Lista plików</a></li>
+        <li><a href="download.html">Pobierz pliki</a></li>
     </ul>
 </nav>
-<button onclick="logout()">Sign out</button>
+<button onclick="logout()">Wyloguj</button>
 
 <script>
     fetch('/dashboard.html')
