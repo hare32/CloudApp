@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>File List</title>
+  <title>Lista plików</title>
   <style>
     table, th, td { border: 1px solid black; border-collapse: collapse; }
     th, td { padding: 5px; text-align: left; }
   </style>
 </head>
 <body>
-<h1>List of Files</h1>
+<h1>Lista plików</h1>
 <table id="fileList">
   <tr>
     <th>#</th>
-    <th>File Name</th>
-    <th>Last Modified</th>
-    <th>Download</th>
-    <th>Versions</th>
+    <th>Nazwa pliku</th>
+    <th>Ostatnio zmodyfikowane</th>
+    <th>Pobierz</th>
+    <th>Wersja</th>
   </tr>
 </table>
 
@@ -93,12 +93,12 @@
                 cell3.innerHTML = file.lastModified;
 
                 const downloadButton = document.createElement('button');
-                downloadButton.textContent = 'Download';
+                downloadButton.textContent = 'Pobierz';
                 downloadButton.onclick = () => downloadFile(`${username}/${file.name}`, file.name);
                 cell4.appendChild(downloadButton);
 
                 const versionsButton = document.createElement('button');
-                versionsButton.textContent = 'Versions';
+                versionsButton.textContent = 'Wersje';
                 versionsButton.onclick = () => {
                   fetch(`/api/versions/${file.name.replace(/_v\d+\./, '.')}`)
                           .then(response => response.json())
@@ -121,10 +121,10 @@
     table.innerHTML = `
       <tr>
         <th>#</th>
-        <th>File Name</th>
-        <th>File Size</th>
-        <th>Last Modified</th>
-        <th>Download</th>
+        <th>Nazwa pliku</th>
+        <th>Rozmiar pliku</th>
+        <th>Ostatnio zmodyfikowane</th>
+        <th>Pobierz</th>
       </tr>`;
 
     fileVersions.forEach((version, index) => {
@@ -135,7 +135,7 @@
       row.insertCell(2).innerHTML = version.size;
       row.insertCell(3).innerHTML = version.lastModified;
       const downloadButton = document.createElement('button');
-      downloadButton.textContent = 'Download';
+      downloadButton.textContent = 'Pobierz';
       downloadButton.onclick = () => downloadFile(version.filePath, versionedFileName);
       row.insertCell(4).appendChild(downloadButton);
     });
