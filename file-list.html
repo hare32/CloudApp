@@ -100,9 +100,16 @@
                 const versionsButton = document.createElement('button');
                 versionsButton.textContent = 'Wersje';
                 versionsButton.onclick = () => {
-                  fetch(`/api/versions/${file.name.replace(/_v\d+\./, '.')}`)
+                  const userNameQueryParam = `?username=${encodeURIComponent(localStorage.getItem('username'))}`;
+                  fetch(`/api/versions/${file.name.replace(/_v\d+\./, '.')}${userNameQueryParam}`, {
+                    headers: { 'Authorization': localStorage.getItem('token') }
+                  })
                           .then(response => response.json())
                           .then(versions => {
+                            if (!Array.isArray(versions)) {
+                              console.error('Oczekiwano tablicy, otrzymano:', versions);
+                              return;
+                            }
                             const baseFileName = file.name.replace(/_v\d+\./, '.');
                             displayVersions(versions, baseFileName)
                           })

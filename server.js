@@ -103,7 +103,7 @@ app.post('/upload',  upload.single('file'), async (req, res) => {
     const containerName = "aplikacja";
 
     try {
-        db.get('SELECT MAX(FileVersion) as maxVersion FROM FileVersions WHERE FileName = ?', originalName, async (err, row) => {
+        db.get('SELECT MAX(FileVersion) as maxVersion FROM FileVersions WHERE FileName = ? AND UserName = ?', [originalName, username], async (err, row) => {
             if (err) {
                 return res.status(500).send('Error during file version check');
             }
@@ -162,10 +162,10 @@ app.get('/api/files', authenticateToken, async (req, res) => {
 });
 
 
-app.get('/api/versions/:fileName', async (req, res) => {
+app.get('/api/versions/:fileName', authenticateToken, async (req, res) => {
     const fileName = req.params.fileName;
-
-    db.all('SELECT * FROM FileVersions WHERE FileName = ? ORDER BY FileVersion DESC', [fileName], (err, rows) => {
+    const username = req.query.username;
+    db.all('SELECT * FROM FileVersions WHERE FileName = ? AND UserName = ? ORDER BY FileVersion DESC', [fileName, username], (err, rows) => {
         if (err) {
             console.error('Error fetching file versions:', err);
             return res.status(500).send('Error fetching file versions');
