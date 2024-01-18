@@ -141,6 +141,59 @@ app.post('/upload',  upload.single('file'), async (req, res) => {
 });
 
 
+app.post('/upload',  upload.single('file'), async (req, res) => {
+    const file = req.file;
+    const originalName = file.originalname;
+    const username = req.body.username;
+    const storageAccountName = "cloudapp123";
+    const containerName = "aplikacja";
+
+    try {
+        const fileData = await fs.readFile(file.path);
+        const calculatedChecksum = crypto.createHash('sha256').update(fileData).digest('hex');
+
+        if (req.body.hash === calculatedChecksum) {
+            db.get('SELECT MAX(FileVersion) as maxVersion FROM FileVersions WHERE FileName = ? AND UserName = ?', [originalName, username], async (err, row) => {
+                if (err) {
+                    return res.status(500).send('Error during file version check');
+                }
+
+                let newVersion = 1;
+                if (row && row.maxVersion) {
+                    newVersion = row.maxVersion + 1;
+                }
+
+                let versionSuffix = newVersion > 1 ? `_v${newVersion}` : '';
+                const blobName = `${username}/${originalName.split('.')[0]}${versionSuffix}.${originalName.split('.').pop()}`;
+                const blobServiceClient = BlobServiceClient.fromConnectionString("DefaultEndpointsProtocol=https;AccountName=cloudapp123;AccountKey=UXeoymEZyr99Qrn4Fe9i0zeJbWYd9Be40vv5DMLYOSJwKmkudA8qrFjH8Ay5m6402q7j6RS5QD4f+AStBwCvXg==;EndpointSuffix=core.windows.net");
+                const containerClient = blobServiceClient.getContainerClient('aplikacja');
+                const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+                await blockBlobClient.uploadFile(file.path);
+
+                const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
+
+                db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
+                    [username, originalName, newVersion, file.size, filePathInDB],
+                    (dbErr) => {
+                        if (dbErr) {
+                            console.error('Database error:', dbErr);
+                            return res.status(500).send('Error during database update');
+                        }
+                        res.send('File uploaded and versioned successfully');
+                        logger.info(`Użytkownik ${username} wysłał plik ${originalName}`);
+                    });
+            });
+        } else {
+            await fs.unlink(file.path);
+            res.status(400).send('Checksum mismatch. File may have been tampered with.');
+        }
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).send('Error during file upload');
+    }
+});
+
 app.get('/api/files', authenticateToken, async (req, res) => {
     const username = req.query.username;
     db.all('SELECT FileName, MAX(FileVersion) as LatestVersion, MAX(LastModified) as LastModified FROM FileVersions WHERE UserName = ? GROUP BY FileName', [username], (err, rows) => {
