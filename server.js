@@ -10,6 +10,7 @@ const path = require('path');
 const db = new sqlite3.Database('usersDataBase.db');
 const cors = require('cors');
 const { open } = require('sqlite');
+const crypto = require('crypto');
 const upload = multer({ dest: 'uploads/' });
 const jwt = require('jsonwebtoken');
 const winston = require('winston');
@@ -92,52 +93,6 @@ app.get('/download', async (req, res) => {
             console.error('Error fetching file:', error);
             res.status(500).send('Internal Server Error');
         });
-});
-
-app.post('/upload',  upload.single('file'), async (req, res) => {
-    const file = req.file;
-    const originalName = file.originalname;
-    const username = req.body.username;
-    const storageAccountName = "cloudapp123";
-    const sasToken = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-12-06T20:52:46Z&st=2023-12-06T12:52:46Z&spr=https&sig=S3c1OckbFNcLEf42h3MVw%2FaZLldkVLpv5fniSpgE58M%3D";
-    const containerName = "aplikacja";
-
-    try {
-        db.get('SELECT MAX(FileVersion) as maxVersion FROM FileVersions WHERE FileName = ? AND UserName = ?', [originalName, username], async (err, row) => {
-            if (err) {
-                return res.status(500).send('Error during file version check');
-            }
-
-            let newVersion = 1;
-            if (row && row.maxVersion) {
-                newVersion = row.maxVersion + 1;
-            }
-
-            let versionSuffix = newVersion > 1 ? `_v${newVersion}` : '';
-            const blobName = `${username}/${originalName.split('.')[0]}${versionSuffix}.${originalName.split('.').pop()}`;
-            const blobServiceClient = BlobServiceClient.fromConnectionString("DefaultEndpointsProtocol=https;AccountName=cloudapp123;AccountKey=UXeoymEZyr99Qrn4Fe9i0zeJbWYd9Be40vv5DMLYOSJwKmkudA8qrFjH8Ay5m6402q7j6RS5QD4f+AStBwCvXg==;EndpointSuffix=core.windows.net");
-            const containerClient = blobServiceClient.getContainerClient('aplikacja');
-            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-            await blockBlobClient.uploadFile(file.path);
-
-            const filePathInDB = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${blobName}`;
-
-            db.run('INSERT INTO FileVersions (UserName, FileName, FileVersion, FileSize, LastModified, FilePath) VALUES (?, ?, ?, ?, datetime(\'now\', \'+1 hour\'), ?)',
-                [username, originalName, newVersion, file.size, filePathInDB],
-                (dbErr) => {
-                    if (dbErr) {
-                        console.error('Database error:', dbErr);
-                        return res.status(500).send('Error during database update');
-                    }
-                    res.send('File uploaded and versioned successfully');
-                    logger.info(`Użytkownik ${username} wysłał plik ${originalName}`);
-                });
-        });
-    } catch (error) {
-        console.error('Server error:', error);
-        res.status(500).send('Error during file upload');
-    }
 });
 
 
